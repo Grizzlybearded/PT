@@ -1,0 +1,85 @@
+<h1>Find Peaks and Troughs</h1>
+
+<% if @fred_code.present? %>
+
+	<%= form_tag peak_trough_path do %>
+
+		<%= label_tag 'fredcode' %>
+		<%= text_field_tag 'fredcode' %>
+
+		<%= label_tag 'delta' %>
+		<%= text_field_tag 'delta' %>
+		
+		<%= submit_tag 'Submit' %>
+	<% end %>
+
+	<% if @data.present? %>
+		<script type="text/javascript" charset="utf-8">
+	  		$(function () {
+	    		new Highcharts.Chart({
+	      			chart: { renderTo: 'orders_chart' },
+	    			xAxis: { type: 'datetime' },
+				    yAxis: {
+				      title: { text: 'Dollars'}
+				    },
+				    rangeSelector: { enabled: true },
+				    navigator: { enabled: true },
+				    scrollbar: { enabled: true },
+				    series: [{  	
+				    	data: <%= @parsed_data %>
+				    }]
+				});
+			});
+		</script>
+		<div id="orders_chart" style="width: 720px; height: 600px;"></div>
+
+		<% if @delta.present? %>
+			<table>
+				<th>
+					<td>Date</td>
+					<td>Value</td>
+					<td>Peak or Trough</td>
+				</th>
+				<% @dates_values.each do |i| %>
+					<tr>
+						<td><%= i[0] %></td>
+						<td><%= i[1] %></td>
+						<td><%= i[2] %></td>
+					</tr>
+				<% end %>
+			</table>
+		<% end %>
+
+	<% end %>
+
+<% else %>
+
+	<%= form_tag peak_trough_path do %>
+
+		<%= label_tag 'fredcode' %>
+		<%= text_field_tag 'fredcode' %>
+		
+		<%= submit_tag 'Submit' %>
+	<% end %>
+
+	<div id="test_chart" style="width: 720px; height: 600px;"></div>
+
+	<script type="text/javascript" charset="utf-8">
+		$(function () {
+		  new Highcharts.Chart({
+		    chart: { renderTo: 'test_chart' },
+		    title: { text: 'Orders by Day' },
+		    xAxis: { 
+		    	type: 'linear' 
+		    },
+		    yAxis: {
+		      title: { text: 'Dollars'}
+		    },
+		    series: [{
+		      data: [[1,null],[2,2], [3,null], [4,7], [5,3]]
+		    }]
+		  });
+		});
+	</script>
+
+<% end %>
