@@ -5,10 +5,10 @@
 	<%= form_tag peak_trough_path do %>
 
 		<%= label_tag 'fredcode' %>
-		<%= text_field_tag 'fredcode' %>
+		<%= text_field_tag 'fredcode', @fred_code %>
 
 		<%= label_tag 'delta' %>
-		<%= text_field_tag 'delta' %>
+		<%= text_field_tag 'delta', @delta %>
 		
 		<%= submit_tag 'Submit' %>
 	<% end %>
@@ -20,8 +20,9 @@
 	      			chart: { renderTo: 'orders_chart' },
 	    			xAxis: { type: 'datetime' },
 				    yAxis: {
-				      title: { text: 'Dollars'}
+				      title: { text: "<%= @get_type_data["series"][0]["units"] %>" }
 				    },
+				    title: { text: "<%= @get_type_data["series"][0]["title"] %>"},
 				    rangeSelector: { enabled: true },
 				    navigator: { enabled: true },
 				    scrollbar: { enabled: true },
@@ -34,24 +35,136 @@
 		<div id="orders_chart" style="width: 720px; height: 600px;"></div>
 
 		<% if @delta.present? %>
-			<table>
-				<th>
-					<td>Date</td>
-					<td>Value</td>
-					<td>Peak or Trough</td>
-				</th>
-				<% @dates_values.each do |i| %>
+			<div>	
+				<table>
 					<tr>
-						<td><%= i[0] %></td>
-						<td><%= i[1] %></td>
-						<td><%= i[2] %></td>
+						<td>Date</td>
+						<td>Value</td>
+						<td>Peak or Trough</td>
+						<td>Index</td>
+						<td>Diff From Previous Value</td>
+						<td>Diff - Number of Periods From Previous Value</td>
 					</tr>
-				<% end %>
-			</table>
+					<% @dates_values.each do |i| %>
+						<tr>
+							<td><%= i[0] %></td>
+							<td><%= i[1] %></td>
+							<td><%= i[2] %></td>
+							<td><%= i[3] %></td>
+							<% if i[4].present? && i[5].present? %>
+								<td><%= number_with_precision(i[4], precision: 2) %></td>
+								<td><%= i[5] %></td>
+							<% end %>
+						</tr>
+					<% end %>
+				</table>
+			</div>
+
+			<% if @peak_calcs[0].present? %>
+				<div>
+					<table>
+						<th>
+							<td>Average</td>
+							<td>Median</td>
+							<td>Max</td>
+							<td>Min</td>
+							<td>Count Peaks</td>
+						</th>
+							<% @peak_calcs.each do |f| %>
+								<tr>
+									<td><%= f[0] %></td>
+									<td><%= number_with_precision(f[1], precision: 2) %></td>
+									<td><%= number_with_precision(f[2], precision: 2) %></td>
+									<td><%= number_with_precision(f[3], precision: 2) %></td>
+									<td><%= number_with_precision(f[4], precision: 2) %></td>
+									<td><%= f[5] + 1 %></td>
+								</tr>
+							<% end %>
+					</table>
+				</div>
+			<% end %>
+
+			<% if @trough_calcs[0].present? %>
+				<div>
+					<table>
+						<th>
+							<td>Average</td>
+							<td>Median</td>
+							<td>Max</td>
+							<td>Min</td>
+							<td>Count Troughs</td>
+						</th>
+							<% @trough_calcs.each do |f| %>
+								<tr>
+									<td><%= f[0] %></td>
+									<td><%= number_with_precision(f[1],precision: 2) %></td>
+									<td><%= number_with_precision(f[2],precision: 2) %></td>
+									<td><%= number_with_precision(f[3],precision: 2) %></td>
+									<td><%= number_with_precision(f[4],precision: 2) %></td>
+									<td><%= f[5] %></td>
+								</tr>
+							<% end %>
+					</table>
+				</div>
+			<% end %>
+
+			<div>
+				<script type="text/javascript" charset="utf-8">
+			  		$(function () {
+			    		new Highcharts.Chart({
+			      			chart: { renderTo: 'peaks_chart' },
+						    yAxis: {
+						      title: { text: 'Units' }
+						    },
+						    title: { text: 'Peaks'},
+						    navigator: { enabled: true },
+						    scrollbar: { enabled: true },
+						    series: [
+						    <% @data_for_peaks.each do |date, values| %>
+						    	{
+						    		name: "<%= date %>",
+						    		data: <%= values.to_json %>,
+						    	},
+						    <% end %>
+						    ]
+						});
+					});
+				</script>
+
+				<div id="peaks_chart" style="width: 720px; height: 600px;"></div>
+			</div>
+			<div>
+				<script type="text/javascript" charset="utf-8">
+			  		$(function () {
+			    		new Highcharts.Chart({
+			      			chart: { renderTo: 'troughs_chart' },
+						    yAxis: {
+						      title: { text: 'Units' }
+						    },
+						    title: { text: 'Troughs'},
+						    navigator: { enabled: true },
+						    scrollbar: { enabled: true },
+						    series: [
+						    <% @data_for_troughs.each do |date, values| %>
+						    	{
+						    		name: "<%= date %>",
+						    		data: <%= values.to_json %>,
+						    	},
+						    <% end %>
+						    ]
+						});
+					});
+				</script>
+
+				<div id="troughs_chart" style="width: 720px; height: 600px;"></div>
+			</div>
 		<% end %>
 
 	<% end %>
-
+	<p>
+		<%= @get_type_data %>
+	</p>
+	
 <% else %>
 
 	<%= form_tag peak_trough_path do %>
@@ -61,25 +174,5 @@
 		
 		<%= submit_tag 'Submit' %>
 	<% end %>
-
-	<div id="test_chart" style="width: 720px; height: 600px;"></div>
-
-	<script type="text/javascript" charset="utf-8">
-		$(function () {
-		  new Highcharts.Chart({
-		    chart: { renderTo: 'test_chart' },
-		    title: { text: 'Orders by Day' },
-		    xAxis: { 
-		    	type: 'linear' 
-		    },
-		    yAxis: {
-		      title: { text: 'Dollars'}
-		    },
-		    series: [{
-		      data: [[1,null],[2,2], [3,null], [4,7], [5,3]]
-		    }]
-		  });
-		});
-	</script>
 
 <% end %>
