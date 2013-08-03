@@ -22,6 +22,7 @@ Peaktrough::Application.configure do
 
   # Precompile additional assets (application.js, application.css, and all non-JS/CSS are already added)
   config.assets.precompile += %w( highcharts.js )
+  config.assets.precompile += %w( highstock.js )
 
   # Defaults to nil and saved in location specified by config.assets.prefix
   # config.assets.manifest = YOUR_PATH
